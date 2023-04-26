@@ -24,9 +24,9 @@
 #include <string>
 using namespace std;
 using std ::string;
-class Karta{
 enum ZNAK {PIK, TREF, KARO, HERC};
-enum BROJ {К1=1, К2, К3, К4, К5, К6, К7, К8, К9, К10=10, ZANDAR=12, DAMA=13, KRALJ=14};
+enum BROJ {KARTA1=1, KARTA2, KARTA3, KARTA4, KARTA5, KARTA6, KARTA7, KARTA8, KARTA9, KARTA10, ZANDAR=12, DAMA=13, KRALJ=14};
+class Karta{
 ZNAK znak;
 BROJ broj;
 public:
@@ -92,11 +92,11 @@ class Spil{
     };
     void operator --(int){
         if(trBr!=-1)
-        karte[--trBr];
+        karte[trBr--];
         else cout<<"Spil je prazan"<<endl;
     }
     int ukupanBr(){
-        return trBr;
+        return trBr+1;
     }
     int ukupnaVrednost(){
         int s = 0;
@@ -147,3 +147,38 @@ class Test {
         
     }
 };
+int main(){
+    Karta card1;
+    Karta card2;
+    Karta card3;
+    Karta card4(KARO, KARTA10);
+    Karta card5(PIK, KARTA10);
+    Karta card6(KARO, KARTA1);
+
+
+
+
+    // compare two cards
+    if (card1 > card2) {
+        cout << "card1 is greater than card2" << std::endl;
+    } else {
+        cout << "card2 is greater than card1" << std::endl;
+    }
+
+   
+    cout << "The value of card4 is: " << card4.vrednost() << std::endl;
+
+
+    Spil deck(8);
+    deck += card1;
+    deck += card2;
+    deck += card3;
+    deck += card4;
+    deck += card5;
+    deck += card6;
+
+    cout << "The deck has " << deck.ukupanBr() << " cards." << endl;
+    deck--;
+    cout << "The deck has " << deck.ukupanBr() << " cards." << endl;
+    cout<<"Najveca"<<deck.najveca();
+}
