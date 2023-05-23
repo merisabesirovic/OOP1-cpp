@@ -36,6 +36,7 @@ class Radnik{
 protected:
 string ime;
 string prezime;
+public:
 Radnik(){
     ime = "Petar";
     prezime = "Petrovic";
@@ -51,6 +52,7 @@ void ispis(){
 class Prodavnica : public Proizvod, Radnik{
 int brRadSati;
 int cenaSata;
+public:
 Prodavnica():Radnik(), Proizvod(){
     brRadSati = 0;
     cenaSata = 0;
@@ -66,3 +68,15 @@ void ispis(){
     cout<<"Prodavnica "<<"ima"<<brRadSati<<" "<<"cena"<<cenaSata<<endl;
 }
 };
+int main(){
+    Proizvod p;
+    p.ispis();
+    Proizvod p2;
+    p2.ispis();
+    Radnik r("merisa", "Besirovic");
+    r.ispis();
+    Prodavnica p3;
+    p3.ispis();
+
+    return 0;
+}
