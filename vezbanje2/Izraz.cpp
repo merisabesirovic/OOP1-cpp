@@ -1,18 +1,115 @@
-/*Napraviti program koji ce realizovati klase izraz1 i izraz2.
-Izraz1 se sastoji od sledecih obelezja:
-char op1  - promenljiva znakovnog tipa koja obelezava operaciju (+,-,*,/)
-operand1 - celobrojna promenljiva prvi operand
-operand2 - celobrojna promenljiva drugi operand
-Metode konstruktor bez argumenata postavlja operaciju na + a operande na 2 i 5;
-Konstruktor sa argumentima (operand1, operancd2, operacija1)
-set i get metode;
-polimorfna metoda double izracunaj() - racuna rezultat na osnovu operacije (sabiranje, mnozenje, deljenje ili oduzimanje)
-metoda ispis() - ispisuje operand1 operand2 i operaciju.
-Klasa izraz2 nasledjuje klasu izraz1 i dodaje jos op2 - operacija 2
-i operand3 - celobrojna promenljiva koja predstavlja treci operand.
-Metode:Konstruktor bez argumenata (postavlja operande na 2, 5 i 3 a operacija na + i *)
-Konstruktor sa argumentima.set i get metode.
-polimorfnu metodu double izracunaj() koja racuna rezultat ali sada vodi racuna o prioritetu koja operacija se prva izvodi (* i /) pa tek onda (+ i -);
-void ispis() ispisuje obelezja();
-Testirate sve metode u glavom programu.
-*/
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+class Izraz1 {
+protected:
+    char operacija1;
+    int operand1;
+    int operand2;
+
+public:
+    Izraz1() {
+        operacija1 = '+';
+        operand1 = 2;
+        operand2 = 5;
+    }
+
+    Izraz1(char operacija1, int o1, int o2) {
+        this->operacija1 = operacija1;
+        operand1 = o1;
+        operand2 = o2;
+    }
+
+    void setOperands(int o1, int o2) {
+        operand1 = o1;
+        operand2 = o2;
+    }
+
+    void setOperacija1(char operacija1) {
+        this->operacija1 = operacija1;
+    }
+
+    char getOperacija1() { return this->operacija1; }
+
+    int getOperand1() { return operand1; }
+
+    int getOperand2() { return operand2; }
+
+    virtual float Izracunaj() {
+        float res;
+        switch (operacija1) {
+            case '+':
+                res = operand1 + operand2;
+                break;
+            case '-':
+                res = operand1 - operand2;
+                break;
+            case '*':
+                res = operand1 * operand2;
+                break;
+            case '/':
+                (operand2 != 0) ? res = operand1 / operand2 : res = 0;
+                break;
+            default:
+                cout << "Nema deljenja sa nulom" << endl;
+        }
+        return res;
+    }
+};
+
+class Izraz2 : public Izraz1 {
+    char operacija3;
+    int operand3;
+
+public:
+    Izraz2() : Izraz1() {
+        operacija3 = '*';
+        operand3 = 3;
+    }
+
+    Izraz2(char operacija1, int operand1, int operand2, int operand3, char operacija3)
+        : Izraz1(operacija1, operand1, operand2) {
+        this->operacija3 = operacija3;
+        this->operand3 = operand3;
+    }
+
+    float Izracunaj() {
+        float res;
+        if (operacija1 == '*' || operacija1 == '/') {
+            res = Izraz1::Izracunaj();
+            if (operacija3 == '+')
+                res += operand3;
+            else if (operacija3 == '-')
+                res -= operand3;
+            else if (operacija3 == '*')
+                res *= operand3;
+            else if (operacija3 == '/' && operand3 != 0)
+                res /= operand3;
+        } else {
+            if (operacija3 == '*') {
+                res = operand2 * operand3;
+            } else if (operacija3 == '/' && operand3 != 0) {
+                res = operand2 / operand3;
+            } else if (operacija3 == '+') {
+                res = Izraz1::Izracunaj() + operand3;
+            } else if (operacija3 == '-') {
+                res = Izraz1::Izracunaj() - operand3;
+            }
+            if (operacija1 == '+') {
+                res += operand1;
+            } else if (operacija1 == '-') {
+                res -= operand1;
+            }
+        }
+        return res;
+    }
+};
+
+int main() {
+    Izraz1 i1;
+    Izraz2 i2('+', 2, 4, 9, '*');
+    cout << i2.Izracunaj() << endl;
+
+    return 0;
+}
