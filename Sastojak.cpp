@@ -21,8 +21,8 @@ Napisati na jeziku C++programkojinapravi nekoliko jela, postavi im određeni pro
   ispiše ga na  standardnom  izlazu. Koristiti  fiksne parametre –nije potrebno ništa učitati sglavnog ulaza.
 */
 #include <iostream>
+#include <string>
 using namespace std;
-using std::string;
 
 class Sastojak {
 public:
@@ -36,34 +36,34 @@ private:
     Vrsta v;
 
 public:
-    Sastojak(string i, float c) {
+    Sastojak(string i, float c, Vrsta vr) {
         ime = i;
         cenaKg = c;
+        v = vr;
     }
-
-    Sastojak() {
+    Sastojak(){
         ime = "";
-        cenaKg = 0;
+        cenaKg = 0.0;
     }
 
-    string getIme() {
+    string getIme() const {
         return ime;
     }
 
-    float cenaPoKg() {
+    float getCenaKg() const {
         return cenaKg;
     }
 
-    float ukupnaCena(int kg) {
-        return cenaKg * kg;
+    float ukupnaCena(int gram) const {
+        return cenaKg * (gram / 1000.0);
     }
 
-    friend ostream& operator<<(ostream& os, Sastojak const& s) {
-        os << s.ime << s.cenaKg << endl;
+    friend ostream& operator<<(ostream& os, const Sastojak& s) {
+        os << s.ime << "-" << s.cenaKg << "/kg";
         return os;
     }
 
-    string nadjiVrstu() {
+    string nadjiVrstu() const {
         switch (v) {
         case SLAN:
             return "SLAN";
@@ -83,7 +83,6 @@ public:
 protected:
     string ime;
     Sastojak* lista;
-    int gram;
     int kolicina;
     int trenutnaKolicina;
     int promenaCene;
@@ -91,15 +90,18 @@ protected:
     PG pg;
 
 public:
-    Jelo(int k, int gram, string n) {
+    Jelo(int k, string n) {
         kolicina = k;
         ime = n;
         lista = new Sastojak[k];
-        this->gram = gram;
         trenutnaKolicina = 0;
     }
 
-    string nadjiPG() {
+    virtual ~Jelo() {
+        delete[] lista;
+    }
+
+    string nadjiPG() const {
         if (pg == P)
             return "P";
         else if (pg == G)
@@ -108,13 +110,14 @@ public:
             return "D";
     }
 
-    virtual void dodaj(Sastojak const& s) {
-        if (kolicina > trenutnaKolicina) {
+    virtual void dodaj(const Sastojak& s) {
+        if (trenutnaKolicina < kolicina) {
             lista[trenutnaKolicina] = s;
             trenutnaKolicina++;
         }
-        else
-            cout << "ERROR";
+        else {
+            cout << "ERROR" << endl;
+        }
     }
 
     void setPovecanje(int p) {
@@ -128,29 +131,27 @@ public:
     virtual float konacnaCena() const {
         float konacna = 0.0;
         for (int i = 0; i < trenutnaKolicina; i++) {
-            konacna += lista[i].ukupnaCena(gram / 1000);
+            konacna += lista[i].ukupnaCena(kolicina);
         }
         return konacna;
     }
 
-    friend ostream& operator<<(ostream& os, Jelo const& j) {
+    friend ostream& operator<<(ostream& os, const Jelo& j) {
         os << j.ime << ":" << j.konacnaCena() << endl;
         for (int i = 0; i < j.trenutnaKolicina; i++) {
-            os << j.lista[i].getIme() << " " << j.gram << endl;
+            os << j.lista[i].getIme() << ":" << j.kolicina << endl;
         }
         return os;
-    }
-
-    ~Jelo() {
-        delete[] lista;
     }
 };
 
 class Predjelo : public Jelo {
 public:
-    Predjelo(int k, int gram, string n) : Jelo(k, gram, n) {}
+    Predjelo(int k, string n) : Jelo(k, n) {
+        pg = P;
+    }
 
-    void dodaj(Sastojak& s) {
+    void dodaj(const Sastojak& s) override {
         if (s.nadjiVrstu() == "SLAN") {
             Jelo::dodaj(s);
         }
@@ -158,37 +159,31 @@ public:
             cout << "ERROR" << endl;
         }
     }
-
-    float konacnaCena() {
-        if (satCene >= 9 && satCene <= 12 && nadjiPG() == "P") {
-            setPovecanje(0.2);
-            return Jelo::konacnaCena() - Jelo::konacnaCena() * 0.2;
-        }
-        else {
-            return Jelo::konacnaCena();
-        }
-    }
 };
 
-class GlavnoJelo : public Predjelo {
+class GlavnoJelo : public Jelo {
 public:
-    GlavnoJelo(int k, int gram, string n) : Predjelo(k, gram, n) {}
+    GlavnoJelo(int k, string n) : Jelo(k, n) {
+        pg = G;
+    }
 
-    float konacnaCena() {
-        if (satCene >= 20 && satCene <= 23 && nadjiPG() == "G") {
-            return Jelo::konacnaCena() + Jelo::konacnaCena() * 0.2;
+    void dodaj(const Sastojak& s) override {
+        if (s.nadjiVrstu() == "SLAN") {
+            Jelo::dodaj(s);
         }
         else {
-            return Jelo::konacnaCena();
+            cout << "ERROR" << endl;
         }
     }
 };
 
 class Dezert : public Jelo {
 public:
-    Dezert(int k, int gram, string n) : Jelo(k, gram, n) {};
+    Dezert(int k, string n) : Jelo(k, n) {
+        pg = D;
+    }
 
-    void dodaj(Sastojak& s) {
+    void dodaj(const Sastojak& s) override {
         if (s.nadjiVrstu() == "SLADiNEUT") {
             Jelo::dodaj(s);
         }
@@ -199,29 +194,23 @@ public:
 };
 
 int main() {
-    Sastojak slanSastojak("Slani sastojak", 10.0);
-    Sastojak sladineutSastojak("Sladak i neutralan sastojak", 15.0);
-    cout << sladineutSastojak << endl;
-    cout << slanSastojak << endl;
+    Sastojak s1("Slani sastojak", 10, Sastojak::SLAN);
+    Sastojak s2("Sladak i neutralan sastojak", 15, Sastojak::SLADiNEUT);
 
-    Predjelo predjelo(3, 200, "Predjelo");
-    GlavnoJelo glavnoJelo(2, 400, "Glavno jelo");
-    Dezert dezert(4, 100, "Dezert");
+    Predjelo p(10, "Predjelo");
+    p.dodaj(s1);
+    p.dodaj(s2);
+    cout << "Predjelo: " << p << endl;
 
-    predjelo.dodaj(slanSastojak);
-    glavnoJelo.dodaj(slanSastojak);
-    dezert.dodaj(sladineutSastojak);
+    GlavnoJelo g(20, "Glavno jelo");
+    g.dodaj(s1);
+    g.dodaj(s2);
+    cout << "Glavno jelo: " << g << endl;
 
-    cout << glavnoJelo << endl;
-    cout << predjelo << endl;
-
-    predjelo.setSat(10);
-    glavnoJelo.setSat(21);
-    dezert.setSat(15);
-
-    cout << predjelo << endl;
-    cout << glavnoJelo << endl;
-    cout << dezert << endl;
+    Dezert d(5, "Dezert");
+    d.dodaj(s2);
+    cout << "Dezert: " << d << endl;
 
     return 0;
 }
+
